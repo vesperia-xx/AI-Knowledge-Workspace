@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local document storage (Phase 3)
+/uploads
+
+# keep the example env file in the repo
+!.env.example

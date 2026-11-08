@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recall
 
-## Getting Started
+Recall is a B2B AI knowledge workspace: teams upload internal documentation and
+ask questions in natural language. Answers are grounded in the company's own
+documents, cite their sources, and can trigger tools when a question turns into
+an action.
 
-First, run the development server:
+This repository is also a learning project. Each phase is documented, reviewed
+and explained in `docs/decisions/` so the architecture can be defended in a
+technical interview.
+
+## Status
+
+Phase 1 — foundations. In progress.
+
+| Phase | Scope | Status |
+| --- | --- | --- |
+| 1 | Setup, database, authentication | In progress |
+| 2 | Organizations, members, roles | Planned |
+| 3 | Document upload and processing | Planned |
+| 4 | RAG, embeddings, semantic search | Planned |
+| 5 | AI assistant, streaming, history | Planned |
+| 6 | Tool calling / agent | Planned |
+| 7 | Dashboard and usage metrics | Planned |
+| 8 | Stripe, plans and limits | Planned |
+| 9 | Security hardening and tests | Planned |
+| 10 | Docker, CI/CD, deployment | Planned |
+
+## Stack
+
+- Next.js 16 (App Router) + React 19 + TypeScript
+- Tailwind CSS v4 + shadcn/ui
+- PostgreSQL + pgvector, accessed with Drizzle ORM
+- Auth.js v5 with database sessions
+- Google Gemini via the Vercel AI SDK
+- BullMQ + Redis for background document processing
+- Stripe for subscriptions (Phase 8)
+
+## Requirements
+
+- Node.js 24+
+- Docker Desktop with the engine running
+- npm 11+
+
+## Getting started
 
 ```bash
+# 1. Environment variables
+cp .env.example .env.local
+# fill AUTH_SECRET
+
+# 2. Infrastructure (Postgres + pgvector, Redis)
+docker compose up -d
+
+# 3. Install dependencies
+npm install
+
+# 4. Apply database migrations
+npm run db:migrate
+
+# 5. Start the app
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs at http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript without emitting |
+| `npm test` | Unit tests with Vitest |
+| `npm run db:generate` | Generate a migration from the Drizzle schema |
+| `npm run db:migrate` | Apply pending migrations |
+| `npm run db:studio` | Browse the database with Drizzle Studio |
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/                 Routes, layouts and route groups
+  components/          UI components (ui/ holds shadcn primitives)
+  server/
+    lib/               Errors, logger, shared server utilities
+    auth/              Auth.js configuration and guards
+    db/                Drizzle client, schema and migrations
+    services/          Business logic, one module per domain
+  env.ts               Runtime environment validation
+docs/decisions/        Architecture decision notes, one per phase
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The rule that keeps the codebase honest: **routes and components never talk to
+the database directly**. They call services, and services are the only place
+that knows about persistence.
