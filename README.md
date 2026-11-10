@@ -11,11 +11,11 @@ technical interview.
 
 ## Status
 
-Phase 1 — foundations. In progress.
+Phase 1 — setup, database and authentication. Complete.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 1 | Setup, database, authentication | In progress |
+| 1 | Setup, database, authentication | Complete |
 | 2 | Organizations, members, roles | Planned |
 | 3 | Document upload and processing | Planned |
 | 4 | RAG, embeddings, semantic search | Planned |
