@@ -15,6 +15,10 @@ export const PERMISSIONS = {
   "member:invite": ["owner", "admin"],
   "member:remove": ["owner", "admin"],
   "member:role:change": ["owner"],
+  "document:upload": ["owner", "admin", "member"],
+  // Members may still delete what they uploaded themselves; that is a
+  // per-resource rule in the service, not something a role matrix can express.
+  "document:delete": ["owner", "admin"],
   "billing:manage": ["owner"],
 } as const satisfies Record<string, readonly MemberRole[]>;
 

@@ -2,10 +2,12 @@ import Link from "next/link";
 import { FileTextIcon, MessageSquareIcon, UsersIcon } from "lucide-react";
 
 import { ROLE_LABELS } from "@/lib/roles";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { requireOrganization } from "@/server/auth/organization";
 import { can } from "@/server/auth/authorization";
+import { countDocuments } from "@/server/services/documents";
 import { listMembers } from "@/server/services/memberships";
 
 export default async function OrganizationOverviewPage({
@@ -15,14 +17,17 @@ export default async function OrganizationOverviewPage({
 }) {
   const { orgSlug } = await params;
   const { organization, role } = await requireOrganization(orgSlug);
-  const members = await listMembers(organization.id);
+  const [members, documentCount] = await Promise.all([
+    listMembers(organization.id),
+    countDocuments(organization.id),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-            Phase 2 complete
+            Phase 3 complete
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">
             {organization.name}
@@ -45,7 +50,7 @@ export default async function OrganizationOverviewPage({
         </div>
       </div>
 
-      <dl className="mt-8 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+      <dl className="mt-8 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-4">
         <div className="bg-background p-5">
           <dt className="text-xs text-muted-foreground">Workspace URL</dt>
           <dd className="mt-1 truncate font-mono text-sm">
@@ -55,6 +60,10 @@ export default async function OrganizationOverviewPage({
         <div className="bg-background p-5">
           <dt className="text-xs text-muted-foreground">Members</dt>
           <dd className="mt-1 text-sm font-medium">{members.length}</dd>
+        </div>
+        <div className="bg-background p-5">
+          <dt className="text-xs text-muted-foreground">Documents</dt>
+          <dd className="mt-1 text-sm font-medium">{documentCount}</dd>
         </div>
         <div className="bg-background p-5">
           <dt className="text-xs text-muted-foreground">Your role</dt>
@@ -67,8 +76,18 @@ export default async function OrganizationOverviewPage({
           <FileTextIcon className="size-4 text-muted-foreground" />
           <h2 className="mt-4 text-sm font-medium">Upload documents</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Parsing, chunking and background processing arrive in Phase 3.
+            Add a PDF, Word file, Markdown or text document. It is parsed and
+            split into passages in the background.
           </p>
+          <Link
+            href={`/app/${organization.slug}/documents`}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "mt-4",
+            )}
+          >
+            Open documents
+          </Link>
         </div>
         <div className="bg-background p-6">
           <MessageSquareIcon className="size-4 text-muted-foreground" />
