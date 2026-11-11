@@ -4,17 +4,16 @@ import { AuthError } from "next-auth";
 import { z } from "zod";
 
 import { signIn, signOut } from "@/auth";
+import type { FormState } from "@/lib/form-state";
 import { logger } from "@/server/lib/logger";
-import {
-  loginSchema,
-  registerSchema,
-  type AuthFormState,
-} from "@/server/auth/form-state";
+import { loginSchema, registerSchema } from "@/server/auth/schemas";
 import { createAccount } from "@/server/services/accounts";
 
 /** Only same-origin, relative paths: prevents an open redirect via ?callbackUrl. */
-function safeRedirect(value: FormDataEntryValue | null): string {
-  const fallback = "/dashboard";
+function safeRedirect(
+  value: FormDataEntryValue | null,
+  fallback = "/dashboard",
+): string {
   if (typeof value !== "string" || !value.startsWith("/")) return fallback;
   return value.startsWith("//") ? fallback : value;
 }
@@ -28,7 +27,7 @@ async function signInWithCredentials(
   email: string,
   password: string,
   redirectTo: string,
-): Promise<AuthFormState> {
+): Promise<FormState> {
   try {
     await signIn("credentials", { email, password, redirectTo });
     return {};
@@ -41,9 +40,9 @@ async function signInWithCredentials(
 }
 
 export async function loginAction(
-  _previousState: AuthFormState,
+  _previousState: FormState,
   formData: FormData,
-): Promise<AuthFormState> {
+): Promise<FormState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -61,9 +60,9 @@ export async function loginAction(
 }
 
 export async function registerAction(
-  _previousState: AuthFormState,
+  _previousState: FormState,
   formData: FormData,
-): Promise<AuthFormState> {
+): Promise<FormState> {
   const parsed = registerSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -87,10 +86,16 @@ export async function registerAction(
   return signInWithCredentials(
     parsed.data.email,
     parsed.data.password,
-    "/dashboard",
+    safeRedirect(formData.get("callbackUrl")),
   );
 }
 
-export async function signOutAction(): Promise<void> {
-  await signOut({ redirectTo: "/" });
+/**
+ * Accepts an optional `callbackUrl` field so a page can sign somebody out and
+ * send them straight back to where they were (the invite pages need this).
+ */
+export async function signOutAction(formData?: FormData): Promise<void> {
+  await signOut({
+    redirectTo: safeRedirect(formData?.get("callbackUrl") ?? null, "/"),
+  });
 }

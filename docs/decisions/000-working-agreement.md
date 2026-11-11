@@ -75,8 +75,9 @@ it today and when it should be revisited.
 | Vector-only retrieval | `pgvector` similarity search only, no `tsvector` hybrid | Phase 9, if recall on exact terms is poor |
 | No client data cache | Server Components + Server Actions, no TanStack Query | Only if the UI needs aggressive client caching |
 | Console logger | Structured JSON to stdout, no `pino` | Phase 10, when logs must be shipped |
-| No OAuth | Credentials only | Phase 2 or 9, once organizations exist |
+| No OAuth | Credentials only | Phase 9 |
 | No CI | Scripts run locally | Phase 10 |
+| No email delivery | Invitation links are copied and shared manually | Phase 8, when plans and email enter the picture |
 
 ## Notation used in explanations
 
@@ -91,8 +92,8 @@ it today and when it should be revisited.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 1 | Setup, database, authentication | In progress |
-| 2 | Organizations, members, roles, invitations | Planned |
+| 1 | Setup, database, authentication | Complete |
+| 2 | Organizations, members, roles, invitations | Complete |
 | 3 | Document upload and processing | Planned |
 | 4 | RAG, embeddings, semantic search | Planned |
 | 5 | AI assistant, streaming, conversation history | Planned |
@@ -117,5 +118,9 @@ Tracked here so they are not rediscovered as "bugs" later.
 - **No rate limiting yet.** Redis is running, but login throttling lands with the
   security phase; until then the login endpoint is unthrottled.
 - **`bcryptjs` is pure JavaScript.** Argon2id (native) is the Phase 9 upgrade.
+- **Invitation tokens are stored in plaintext.** Hashing them (returning the raw
+  token once, at creation) is the Phase 9 hardening item.
+- **No rate limit on invitation creation.** Redis is available; throttling
+  belongs with the Phase 9 security pass.
 - **Compose volume is named `Postgres_data`.** Cosmetic inconsistency with
   `redis_data`; renaming later requires `docker compose down` first.

@@ -17,6 +17,7 @@ export default async function LoginPage({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const { callbackUrl } = await searchParams;
+  const destination = callbackUrl ?? "/dashboard";
 
   return (
     <Card>
@@ -27,12 +28,12 @@ export default async function LoginPage({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <LoginForm callbackUrl={callbackUrl ?? "/dashboard"} />
+        <LoginForm callbackUrl={destination} />
 
         <p className="mt-6 text-sm text-muted-foreground">
           No account yet?{" "}
           <Link
-            href="/register"
+            href={`/register?callbackUrl=${encodeURIComponent(destination)}`}
             className="text-foreground underline-offset-4 hover:underline"
           >
             Create one

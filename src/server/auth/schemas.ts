@@ -2,12 +2,6 @@ import { z } from "zod";
 
 import { MAX_PASSWORD_BYTES } from "./password";
 
-/** Shape the forms receive back from a server action. */
-export type AuthFormState = {
-  message?: string;
-  fieldErrors?: Record<string, string[] | undefined>;
-};
-
 const email = z
   .string()
   .trim()

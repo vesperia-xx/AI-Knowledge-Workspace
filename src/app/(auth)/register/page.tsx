@@ -11,7 +11,14 @@ import {
 
 export const metadata = { title: "Create account" };
 
-export default function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const { callbackUrl } = await searchParams;
+  const destination = callbackUrl ?? "/dashboard";
+
   return (
     <Card>
       <CardHeader>
@@ -21,12 +28,12 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RegisterForm />
+        <RegisterForm callbackUrl={destination} />
 
         <p className="mt-6 text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link
-            href="/login"
+            href={`/login?callbackUrl=${encodeURIComponent(destination)}`}
             className="text-foreground underline-offset-4 hover:underline"
           >
             Sign in

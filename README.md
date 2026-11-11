@@ -11,12 +11,12 @@ technical interview.
 
 ## Status
 
-Phase 1 — setup, database and authentication. Complete.
+Phase 2 — organizations, members, roles and invitations. Complete.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Setup, database, authentication | Complete |
-| 2 | Organizations, members, roles | Planned |
+| 2 | Organizations, members, roles | Complete |
 | 3 | Document upload and processing | Planned |
 | 4 | RAG, embeddings, semantic search | Planned |
 | 5 | AI assistant, streaming, history | Planned |
@@ -31,7 +31,7 @@ Phase 1 — setup, database and authentication. Complete.
 - Next.js 16 (App Router) + React 19 + TypeScript
 - Tailwind CSS v4 + shadcn/ui
 - PostgreSQL + pgvector, accessed with Drizzle ORM
-- Auth.js v5 with database sessions
+- Auth.js v5 with credentials and a JWT session cookie
 - Google Gemini via the Vercel AI SDK
 - BullMQ + Redis for background document processing
 - Stripe for subscriptions (Phase 8)
@@ -82,10 +82,14 @@ The app runs at http://localhost:3000.
 ```
 src/
   app/                 Routes, layouts and route groups
+    (app)/             Authenticated app: dashboard, onboarding, workspace
+    (auth)/            Login, register and invitation acceptance
   components/          UI components (ui/ holds shadcn primitives)
+  lib/                 Shared client-safe helpers (slugs, role labels)
   server/
     lib/               Errors, logger, shared server utilities
-    auth/              Auth.js configuration and guards
+    auth/              Auth.js configuration, guards, policy, tenant resolution
+    actions/           Server Actions: validate, authorize, call a service
     db/                Drizzle client, schema and migrations
     services/          Business logic, one module per domain
   env.ts               Runtime environment validation
@@ -94,4 +98,5 @@ docs/decisions/        Architecture decision notes, one per phase
 
 The rule that keeps the codebase honest: **routes and components never talk to
 the database directly**. They call services, and services are the only place
-that knows about persistence.
+that knows about persistence. Workspaces are addressed by URL
+(`/app/[orgSlug]/...`); a non-member gets a 404, not a 403.

@@ -7,12 +7,12 @@ import { FieldError } from "@/components/auth/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { registerAction } from "@/server/auth/actions";
-import type { AuthFormState } from "@/server/auth/form-state";
+import type { FormState } from "@/lib/form-state";
+import { registerAction } from "@/server/actions/auth";
 
-const initialState: AuthFormState = {};
+const initialState: FormState = {};
 
-export function RegisterForm() {
+export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
   const [state, formAction, pending] = useActionState(
     registerAction,
     initialState,
@@ -23,6 +23,9 @@ export function RegisterForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-4" noValidate>
+      {/* Keeps the invite link after sign-up; see safeRedirect in the action. */}
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
+
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="name">Name</Label>
         <Input

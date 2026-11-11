@@ -3,6 +3,7 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/server/db";
+import { isUniqueViolation } from "@/server/db/errors";
 import { users } from "@/server/db/schema";
 import { hashPassword } from "@/server/auth/password";
 
@@ -15,15 +16,6 @@ export type CreateAccountInput = {
 export type CreateAccountResult =
   | { ok: true; userId: string }
   | { ok: false; reason: "email_taken" };
-
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "23505"
-  );
-}
 
 /**
  * Creates a password account.
@@ -56,7 +48,9 @@ export async function createAccount(
 
     return { ok: true, userId: row.id };
   } catch (error) {
-    if (isUniqueViolation(error)) return { ok: false, reason: "email_taken" };
+    if (isUniqueViolation(error, "users_email_unique")) {
+      return { ok: false, reason: "email_taken" };
+    }
     throw error;
   }
 }

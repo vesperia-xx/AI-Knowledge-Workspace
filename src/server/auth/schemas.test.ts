@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loginSchema, registerSchema } from "./form-state";
+import { loginSchema, registerSchema } from "./schemas";
 import { hashPassword, verifyPassword } from "./password";
 
 describe("registerSchema", () => {

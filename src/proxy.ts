@@ -14,7 +14,7 @@ import { authConfig } from "@/server/auth/config";
 const { auth } = NextAuth(authConfig);
 
 const AUTH_ROUTES = new Set(["/login", "/register"]);
-const PROTECTED_PREFIXES = ["/dashboard"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/app"];
 
 export default auth((request) => {
   const { pathname, search } = request.nextUrl;
@@ -38,5 +38,11 @@ export default auth((request) => {
 
 export const config = {
   // Only the routes that need a decision. Everything else skips the proxy.
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: [
+    "/dashboard/:path*",
+    "/onboarding",
+    "/app/:path*",
+    "/login",
+    "/register",
+  ],
 };

@@ -11,7 +11,7 @@ import {
   verificationTokens,
 } from "@/server/db/schema";
 import { authConfig } from "@/server/auth/config";
-import { loginSchema } from "@/server/auth/form-state";
+import { loginSchema } from "@/server/auth/schemas";
 import { verifyPassword } from "@/server/auth/password";
 
 /**

@@ -103,7 +103,7 @@ Forms use `useActionState` and a server action, so the only network endpoint is
 the action itself: no hand-written API route, no client-side fetch, no duplicated
 validation.
 
-- **Validation runs on the server**, in `form-state.ts`, with the same Zod schema
+- **Validation runs on the server**, in `schemas.ts`, with the same Zod schema
   the tests use. The browser's `type="email"` is a hint, not a guarantee.
 - **Redirects are thrown, not returned.** `signIn` signals success by throwing a
   redirect; only `AuthError` is caught, everything else is rethrown. Swallowing

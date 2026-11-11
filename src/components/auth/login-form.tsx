@@ -7,10 +7,10 @@ import { FieldError } from "@/components/auth/field-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginAction } from "@/server/auth/actions";
-import type { AuthFormState } from "@/server/auth/form-state";
+import type { FormState } from "@/lib/form-state";
+import { loginAction } from "@/server/actions/auth";
 
-const initialState: AuthFormState = {};
+const initialState: FormState = {};
 
 export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
