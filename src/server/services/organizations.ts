@@ -101,3 +101,21 @@ export async function renameOrganization(input: {
     throw new NotFoundError("Workspace not found.");
   }
 }
+
+export async function getOrganizationBySlug(orgSlug: string) {
+  const [org] = await db
+    .select({
+      id: organizations.id,
+      name: organizations.name,
+      slug: organizations.slug,
+      createdById: organizations.createdById,
+    })
+    .from(organizations)
+    .where(eq(organizations.slug, orgSlug));
+
+  if (!org) {
+    throw new NotFoundError("Workspace not found.");
+  }
+
+  return org;
+}

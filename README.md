@@ -11,19 +11,19 @@ technical interview.
 
 ## Status
 
-Phase 2 — organizations, members, roles and invitations. Complete.
+Phase 9 — security hardening, plans, limits and tests. Complete.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 1 | Setup, database, authentication | Complete |
 | 2 | Organizations, members, roles | Complete |
-| 3 | Document upload and processing | Planned |
-| 4 | RAG, embeddings, semantic search | Planned |
-| 5 | AI assistant, streaming, history | Planned |
-| 6 | Tool calling / agent | Planned |
-| 7 | Dashboard and usage metrics | Planned |
-| 8 | Stripe, plans and limits | Planned |
-| 9 | Security hardening and tests | Planned |
+| 3 | Document upload and processing | Complete |
+| 4 | RAG, embeddings, semantic search | Complete |
+| 5 | AI assistant, streaming, history | Complete |
+| 6 | Tool calling / agent | Complete |
+| 7 | Dashboard and usage metrics | Complete |
+| 8 | Plans, limits and simulated checkout | Complete |
+| 9 | Security hardening, tests and optimization | Complete |
 | 10 | Docker, CI/CD, deployment | Planned |
 
 ## Stack

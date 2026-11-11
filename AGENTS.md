@@ -30,3 +30,10 @@ decisions, the deliberate scope cuts and the phase map.
   (or the DAL), and those are the only place that knows about persistence.
 - Status belongs in `README.md` and `docs/decisions/`, never in a root
   `summary.md`.
+
+## Reglas de Eficiencia de Contexto (Límite 250k TPM)
+1. Lectura selectiva: Usa grep/búsqueda primero y lee solo los rangos de líneas necesarios, nunca archivos enteros si no hace falta.
+2. Archivos prohibidos: Ignora node_modules/, .next/, dist/, build/, package-lock.json, pnpm-lock.yaml, yarn.lock y archivos generados.
+3. Máximo 2-3 archivos por turno: No encadenes múltiples lecturas grandes en una sola respuesta.
+4. Memoria externa: Documenta planes largos y progreso en PLAN.md para poder usar /clean sin perder contexto.
+5. Respuestas concisas: Ve directo al código o al plan sin repetir código sin cambios.

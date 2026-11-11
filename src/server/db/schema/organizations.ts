@@ -13,16 +13,20 @@ import {
 import { users } from "./auth";
 
 export const MEMBER_ROLES = ["owner", "admin", "member"] as const;
+export const SUBSCRIPTION_PLANS = ["free", "pro", "enterprise"] as const;
 
 export const memberRole = pgEnum("member_role", MEMBER_ROLES);
+export const subscriptionPlan = pgEnum("subscription_plan", SUBSCRIPTION_PLANS);
 
 export type MemberRole = (typeof MEMBER_ROLES)[number];
+export type SubscriptionPlan = (typeof SUBSCRIPTION_PLANS)[number];
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   /** Used in the URL: /app/{slug}. Immutable for now. */
   slug: text("slug").notNull().unique(),
+  plan: subscriptionPlan("plan").notNull().default("free"),
   createdById: uuid("created_by_id").references(() => users.id, {
     onDelete: "set null",
   }),

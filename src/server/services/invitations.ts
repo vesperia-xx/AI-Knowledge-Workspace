@@ -9,6 +9,7 @@ import { isUniqueViolation } from "@/server/db/errors";
 import { invitations, memberships, organizations, users } from "@/server/db/schema";
 import type { MemberRole } from "@/server/db/schema";
 import { assertCan } from "@/server/auth/authorization";
+import { enforceOrgLimit } from "@/server/services/plans";
 import { ConflictError } from "@/server/lib/errors";
 import { requireMembership } from "./memberships";
 
@@ -82,6 +83,8 @@ export async function createInvitation(input: {
 }): Promise<CreateInvitationResult> {
   const actor = await requireMembership(input.organizationId, input.actorId);
   assertCan(actor.role, "member:invite");
+
+  await enforceOrgLimit(input.organizationId, "members");
 
   // Ownership is granted in-app, never by link: a forwarded invite would
   // otherwise be a way to hand over the workspace.

@@ -22,6 +22,20 @@
       "when": 1794423826226,
       "tag": "0002_nice_genesis",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794428983204,
+      "tag": "0003_big_mandarin",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794429443911,
+      "tag": "0004_warm_phil_sheldon",
+      "breakpoints": true
     }
   ]
 }

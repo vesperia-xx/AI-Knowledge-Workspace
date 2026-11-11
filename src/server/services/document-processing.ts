@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { documentChunks, documents } from "@/server/db/schema";
 import type { TextChunk } from "@/server/documents/chunk";
+import { generateEmbedding } from "@/server/services/rag";
 
 export type DocumentForProcessing = {
   id: string;
@@ -43,10 +44,10 @@ export async function claimDocument(input: {
   return document ?? null;
 }
 
-const INSERT_BATCH_SIZE = 200;
+const INSERT_BATCH_SIZE = 50; // Smaller batch size for embedding API calls
 
 /**
- * Replaces the document's chunks and marks it ready in one transaction.
+ * Replaces the document's chunks, generates their vector embeddings, and marks it ready in one transaction.
  *
  * Deleting first makes the job idempotent: a retry after a crash halfway
  * through leaves no duplicates and no partial state.
@@ -63,16 +64,24 @@ export async function completeDocument(input: {
       .where(eq(documentChunks.documentId, input.documentId));
 
     for (let offset = 0; offset < input.chunks.length; offset += INSERT_BATCH_SIZE) {
-      const batch = input.chunks
-        .slice(offset, offset + INSERT_BATCH_SIZE)
-        .map((chunk) => ({
-          documentId: input.documentId,
-          chunkIndex: chunk.index,
-          content: chunk.content,
-          charCount: chunk.charCount,
-        }));
+      const sliceChunks = input.chunks.slice(offset, offset + INSERT_BATCH_SIZE);
 
-      if (batch.length > 0) await tx.insert(documentChunks).values(batch);
+      const batchWithEmbeddings = await Promise.all(
+        sliceChunks.map(async (chunk) => {
+          const embedding = await generateEmbedding(chunk.content);
+          return {
+            documentId: input.documentId,
+            chunkIndex: chunk.index,
+            content: chunk.content,
+            charCount: chunk.charCount,
+            embedding,
+          };
+        }),
+      );
+
+      if (batchWithEmbeddings.length > 0) {
+        await tx.insert(documentChunks).values(batchWithEmbeddings);
+      }
     }
 
     await tx

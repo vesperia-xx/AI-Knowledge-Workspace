@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  customType,
   index,
   integer,
   pgEnum,
@@ -24,6 +25,30 @@ export const documentStatus = pgEnum("document_status", DOCUMENT_STATUSES);
 
 export type DocumentStatus = (typeof DOCUMENT_STATUSES)[number];
 
+/**
+ * Custom pgvector type for Drizzle ORM.
+ */
+const vector = customType<{
+  data: number[];
+  driverData: string;
+  config: { dimensions?: number };
+}>({
+  dataType(config) {
+    return config?.dimensions ? `vector(${config.dimensions})` : "vector";
+  },
+  fromDriver(value: string): number[] {
+    if (!value) return [];
+    try {
+      return JSON.parse(value);
+    } catch {
+      return [];
+    }
+  },
+  toDriver(value: number[]): string {
+    return JSON.stringify(value);
+  },
+});
+
 export const documents = pgTable(
   "documents",
   {
@@ -31,13 +56,10 @@ export const documents = pgTable(
     organizationId: uuid("organization_id")
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    /** Kept for audit; a removed account does not remove the document. */
     uploadedById: uuid("uploaded_by_id").references(() => users.id, {
       onDelete: "set null",
     }),
-    /** Original file name, for display only. Never used to build a path. */
     name: text("name").notNull(),
-    /** Relative path inside the storage adapter: {orgId}/{documentId}.{ext}. */
     storageKey: text("storage_key").notNull().unique(),
     extension: text("extension").notNull(),
     mimeType: text("mime_type").notNull(),
@@ -55,7 +77,6 @@ export const documents = pgTable(
       .$onUpdate(() => new Date()),
   },
   (document) => [
-    // Every listing is "documents of this workspace, newest first".
     index("documents_organization_id_created_at_idx").on(
       document.organizationId,
       document.createdAt,
@@ -64,8 +85,7 @@ export const documents = pgTable(
 );
 
 /**
- * Extracted passages. Phase 4 adds an embedding column here; keeping the text
- * and its position now means ingestion does not have to change shape later.
+ * Extracted passages with vector embeddings for semantic search.
  */
 export const documentChunks = pgTable(
   "document_chunks",
@@ -77,12 +97,12 @@ export const documentChunks = pgTable(
     chunkIndex: integer("chunk_index").notNull(),
     content: text("content").notNull(),
     charCount: integer("char_count").notNull(),
+    embedding: vector("embedding", { dimensions: 1536 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (chunk) => [
-    // Makes re-processing idempotent and guarantees stable ordering.
     uniqueIndex("document_chunks_document_id_chunk_index_idx").on(
       chunk.documentId,
       chunk.chunkIndex,

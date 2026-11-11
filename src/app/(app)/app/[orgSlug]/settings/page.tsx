@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { RenameOrganizationForm } from "@/components/organizations/rename-organization-form";
+import { PlanBillingSection } from "@/components/organizations/plan-billing-section";
 import {
   Card,
   CardContent,
@@ -10,6 +11,11 @@ import {
 } from "@/components/ui/card";
 import { requireOrganization } from "@/server/auth/organization";
 import { can } from "@/server/auth/authorization";
+import { getOrganizationPlan, PLANS } from "@/server/services/plans";
+import { countDocuments } from "@/server/services/documents";
+import { db } from "@/server/db";
+import { memberships } from "@/server/db/schema";
+import { eq, sql } from "drizzle-orm";
 
 export const metadata = { title: "Workspace settings" };
 
@@ -26,6 +32,17 @@ export default async function OrganizationSettingsPage({
   if (!can(role, "org:update")) {
     notFound();
   }
+
+  const currentPlan = await getOrganizationPlan(organization.id);
+  const planDetails = PLANS[currentPlan];
+  const currentDocs = await countDocuments(organization.id);
+
+  const [memberCountRes] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(memberships)
+    .where(eq(memberships.organizationId, organization.id));
+
+  const currentMembers = Number(memberCountRes?.count ?? 0);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -53,6 +70,25 @@ export default async function OrganizationSettingsPage({
               /app/{organization.slug}
             </code>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Planes y Facturación</CardTitle>
+          <CardDescription>
+            Administra el plan de tu organización y verifica el uso actual de recursos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PlanBillingSection
+            orgSlug={organization.slug}
+            currentPlan={currentPlan}
+            currentDocs={currentDocs}
+            maxDocs={planDetails.maxDocuments}
+            currentMembers={currentMembers}
+            maxMembers={planDetails.maxMembers}
+          />
         </CardContent>
       </Card>
     </div>

@@ -52,7 +52,7 @@ removed, not kept.
 | ORM | Drizzle ORM + `pg` | SQL-shaped, typed, no hidden query engine |
 | Auth | Auth.js v5 (`next-auth@5 beta`) | Database-backed user records, JWT session cookie |
 | Validation | Zod 4 | One schema for forms, server actions and env |
-| AI | Google Gemini via Vercel AI SDK | Embeddings + generation behind one interface |
+| AI | OpenRouter (compatible con Vercel AI SDK) | Embeddings + generation behind one interface |
 | Queue | BullMQ + Redis | Document ingestion must not block a request |
 | Tests | Vitest | Fast, no config ceremony |
 
@@ -94,11 +94,11 @@ it today and when it should be revisited.
 | --- | --- | --- |
 | 1 | Setup, database, authentication | Complete |
 | 2 | Organizations, members, roles, invitations | Complete |
-| 3 | Document upload and processing | Planned |
-| 4 | RAG, embeddings, semantic search | Planned |
-| 5 | AI assistant, streaming, conversation history | Planned |
-| 6 | Tool calling / agent behaviour | Planned |
-| 7 | Dashboard and usage metrics | Planned |
+| 3 | Document upload and processing | Complete |
+| 4 | RAG, embeddings, semantic search | Complete |
+| 5 | AI assistant, streaming, conversation history | Complete |
+| 6 | Tool calling / agent behaviour | Complete |
+| 7 | Dashboard and usage metrics | Complete |
 | 8 | Stripe, plans and limits | Planned |
 | 9 | Security hardening and tests | Planned |
 | 10 | Docker, CI/CD, deployment, docs | Planned |

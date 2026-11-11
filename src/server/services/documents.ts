@@ -8,6 +8,7 @@ import { db } from "@/server/db";
 import { documentChunks, documents, users } from "@/server/db/schema";
 import type { DocumentStatus } from "@/server/db/schema";
 import { assertCan, can } from "@/server/auth/authorization";
+import { enforceOrgLimit } from "@/server/services/plans";
 import {
   detectFileType,
   MAX_UPLOAD_BYTES,
@@ -99,6 +100,8 @@ export async function createDocument(input: {
 }): Promise<{ id: string; name: string; status: DocumentStatus }> {
   const actor = await requireMembership(input.organizationId, input.actorId);
   assertCan(actor.role, "document:upload");
+
+  await enforceOrgLimit(input.organizationId, "documents");
 
   const detection = detectFileType(input.fileName, input.buffer);
   if (!detection.ok) {

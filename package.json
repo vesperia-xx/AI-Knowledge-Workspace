@@ -17,8 +17,11 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.115",
+    "@ai-sdk/react": "^4.0.174",
     "@auth/drizzle-adapter": "^1.11.3",
     "@base-ui/react": "^1.9.0",
+    "ai": "^7.0.170",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.7.4",
     "class-variance-authority": "^0.7.1",
