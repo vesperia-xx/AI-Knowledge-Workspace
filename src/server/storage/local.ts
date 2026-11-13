@@ -1,5 +1,6 @@
 import "server-only";
 
+import os from "node:os";
 import path from "node:path";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 
@@ -12,11 +13,14 @@ import type { DocumentExtension } from "@/server/documents/file-types";
  * this module for S3/R2 without touching services: the contract is
  * "save bytes under a key, read them back, delete them".
  *
- * `UPLOAD_DIR` is optional and not part of env.ts yet; the default keeps the
- * project runnable with zero configuration.
+ * `UPLOAD_DIR` overrides the location. Without it, serverless platforms get the
+ * only writable directory they have (`/tmp`), so the demo uploads work for the
+ * lifetime of the function instance. Files there are ephemeral: a retry after
+ * a cold start will not find the original bytes.
  */
 const ROOT = path.resolve(
-  /* turbopackIgnore: true */ process.env.UPLOAD_DIR ?? "uploads",
+  /* turbopackIgnore: true */ process.env.UPLOAD_DIR ??
+    (process.env.VERCEL ? path.join(os.tmpdir(), "recall-uploads") : "uploads"),
 );
 
 /**

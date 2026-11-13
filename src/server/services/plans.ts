@@ -5,29 +5,9 @@ import { organizations, memberships } from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { countDocuments } from "@/server/services/documents";
 import { ForbiddenError } from "@/server/lib/errors";
+import { PLANS, type PlanType } from "@/lib/plans";
 
-export const PLANS = {
-  free: {
-    name: "Free",
-    maxDocuments: 10,
-    maxMembers: 3,
-    maxChatQueriesPerMonth: 100,
-  },
-  pro: {
-    name: "Pro",
-    maxDocuments: 100,
-    maxMembers: 15,
-    maxChatQueriesPerMonth: 1000,
-  },
-  enterprise: {
-    name: "Enterprise",
-    maxDocuments: 10000,
-    maxMembers: 100,
-    maxChatQueriesPerMonth: 50000,
-  },
-} as const;
-
-export type PlanType = keyof typeof PLANS;
+export { PLANS, type PlanType } from "@/lib/plans";
 
 export async function getOrganizationPlan(organizationId: string): Promise<PlanType> {
   const [org] = await db

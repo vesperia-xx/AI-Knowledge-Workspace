@@ -1,7 +1,7 @@
 import "server-only";
 
 import { embed } from "ai";
-import { cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
+import { cosineDistance, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/server/db";
 import { documentChunks, documents } from "@/server/db/schema";

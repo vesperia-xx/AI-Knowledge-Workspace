@@ -12,6 +12,12 @@ import { logger } from "@/server/lib/logger";
 import { createDocument } from "@/server/services/documents";
 
 /**
+ * Inline processing (Vercel) runs after the response, so the function must stay
+ * alive long enough to embed the chunks. 60s is the Hobby ceiling.
+ */
+export const maxDuration = 60;
+
+/**
  * Uploads are a route handler, not a Server Action: actions cap request bodies
  * at 1 MB by default, and raising that limit for every action is worse than
  * giving uploads their own endpoint.

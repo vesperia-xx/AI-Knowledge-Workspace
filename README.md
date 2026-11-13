@@ -33,8 +33,8 @@ Phase 9 — security hardening, plans, limits and tests. Complete.
 - PostgreSQL + pgvector, accessed with Drizzle ORM
 - Auth.js v5 with credentials and a JWT session cookie
 - Google Gemini via the Vercel AI SDK
-- BullMQ + Redis for background document processing
-- Stripe for subscriptions (Phase 8)
+- BullMQ + Redis for background document processing (optional: inline on Vercel)
+- Simulated checkout for plans and limits (no external payment provider)
 
 ## Requirements
 
@@ -100,3 +100,28 @@ The rule that keeps the codebase honest: **routes and components never talk to
 the database directly**. They call services, and services are the only place
 that knows about persistence. Workspaces are addressed by URL
 (`/app/[orgSlug]/...`); a non-member gets a 404, not a 403.
+
+## Deploying the demo (Vercel)
+
+The app runs on Vercel with two managed services and no extra worker:
+
+1. **Database**: Neon (or Supabase) Postgres with `create extension vector`.
+   Set `DATABASE_URL` to the **pooled** connection string and run
+   `npm run db:migrate` once against it.
+2. **Redis**: Upstash (or any `rediss://` provider). Required by the env schema
+   and used for rate limiting.
+3. **Variables**: `DATABASE_URL`, `REDIS_URL`, `AUTH_SECRET`,
+   `OPENROUTER_API_KEY` and `AUTH_URL`. They must exist before the build, since
+   `src/env.ts` validates them while collecting page data.
+
+On Vercel, `DOCUMENT_PROCESSING` defaults to `inline`: the document is
+processed after the upload response is sent, with no queue consumer. The
+trade-off is the function timeout, so keep demo files small. Set
+`DOCUMENT_PROCESSING=queue` and run `src/worker/` on a long-lived host
+(Railway, Render, Fly) for production-sized documents.
+
+Uploads are written to `/tmp` on Vercel by default. That is writable but
+ephemeral: files disappear on cold starts and after a retry. For durable
+storage, point `UPLOAD_DIR` at a mounted volume or swap
+`src/server/storage/local.ts` for S3/R2.
+

@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
+import { after } from "next/server";
 import { and, count, desc, eq } from "drizzle-orm";
 
 import { db } from "@/server/db";
@@ -14,7 +15,8 @@ import {
   MAX_UPLOAD_BYTES,
   type DetectionFailure,
 } from "@/server/documents/file-types";
-import { enqueueDocumentProcessing } from "@/server/documents/queue";
+import { processDocument } from "@/server/documents/process";
+import { resolveProcessingMode } from "@/server/documents/processing-mode";
 import {
   deleteStoredFile,
   saveFile,
@@ -85,6 +87,56 @@ export async function countDocuments(organizationId: string): Promise<number> {
 }
 
 /**
+ * Decides where processing runs.
+ *
+ * Locally (and on any long-lived host) the BullMQ worker consumes jobs. On
+ * Vercel there is no resident worker, so the same pipeline runs inside the
+ * request with `after()`, once the response has been sent. Set
+ * `DOCUMENT_PROCESSING=queue` to force BullMQ even on Vercel, or `inline` to
+ * skip Redis entirely. Trade-off: inline work is capped by the function
+ * timeout, so very large documents need the worker.
+ */
+async function scheduleDocumentProcessing(input: {
+  documentId: string;
+  organizationId: string;
+}): Promise<void> {
+  if (
+    resolveProcessingMode({
+      DOCUMENT_PROCESSING: process.env.DOCUMENT_PROCESSING,
+      VERCEL: process.env.VERCEL,
+    }) === "queue"
+  ) {
+    // Loaded lazily so BullMQ (and its Redis connection) never enters the
+    // module graph on deployments that process inline.
+    const { enqueueDocumentProcessing } = await import(
+      "@/server/documents/queue"
+    );
+    await enqueueDocumentProcessing(input);
+    return;
+  }
+
+  const run = async () => {
+    try {
+      await processDocument(input);
+    } catch (error) {
+      // processDocument already marked the row as failed; this log is the
+      // trace for after() errors, which the runtime does not surface.
+      logger.error("documents.process.inline_failed", {
+        documentId: input.documentId,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  try {
+    after(run);
+  } catch {
+    // Not inside a request scope (scripts, tests): run it in the background.
+    void run();
+  }
+}
+
+/**
  * Stores the bytes, records the row and queues processing.
  *
  * The file is written before the row so a database failure can delete it; the
@@ -138,7 +190,7 @@ export async function createDocument(input: {
   let status: DocumentStatus = "pending";
 
   try {
-    await enqueueDocumentProcessing({
+    await scheduleDocumentProcessing({
       documentId: id,
       organizationId: input.organizationId,
     });
@@ -272,7 +324,7 @@ export async function retryDocument(input: {
   });
 
   try {
-    await enqueueDocumentProcessing({
+    await scheduleDocumentProcessing({
       documentId: document.id,
       organizationId: input.organizationId,
     });

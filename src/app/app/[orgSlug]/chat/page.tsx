@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState } from "react";
 import { Send, Bot, User, Loader2, Sparkles } from "lucide-react";
 
 type Message = {

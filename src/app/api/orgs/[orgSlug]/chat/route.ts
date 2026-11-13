@@ -1,13 +1,15 @@
 import { streamText } from "ai";
 
 import { chatModel } from "@/server/ai/client";
-import { createWorkspaceTools } from "@/server/ai/tools/workspace";
 import { requireOrganization } from "@/server/auth/organization";
 import { getCurrentUser } from "@/server/auth/session";
 import {
   addMessage,
   createConversation,
 } from "@/server/services/chats";
+
+/** Streaming answers regularly outlive the default function budget. */
+export const maxDuration = 60;
 
 export async function POST(
   request: Request,
@@ -50,9 +52,8 @@ export async function POST(
     content: latestMessage.content,
   });
 
-  // 2. Define workspace tools bound to this organization
-  const tools = createWorkspaceTools(org.organization.id);
-
+  // 2. Workspace tools stay disabled until the chat provider is confirmed to
+  // support tool calls end to end.
   const systemPrompt = `You are Recall, a helpful AI knowledge workspace assistant. You have access to workspace tools to search internal documents, check workspace statistics, and list recent files. Use these tools when needed to give accurate, well-informed answers. Always cite your sources when using document chunks.`;
 
   // 3. Stream response using AI SDK streamText without tools parameter to keep robust compatibility

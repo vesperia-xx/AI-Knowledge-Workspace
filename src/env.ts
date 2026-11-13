@@ -10,6 +10,14 @@ const envSchema = z.object({
     { message: "REDIS_URL debe empezar por redis:// o rediss://" }
   ),
   AUTH_SECRET: z.string().min(32, { message: "AUTH_SECRET debe tener al menos 32 caracteres" }),
+  /**
+   * Where document processing runs. Defaults to the BullMQ worker locally and
+   * to inline (after the response) on Vercel. See services/documents.ts.
+   */
+  DOCUMENT_PROCESSING: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.enum(["queue", "inline"]).optional(),
+  ),
 });
 
 export function parseEnv(source: NodeJS.ProcessEnv) {

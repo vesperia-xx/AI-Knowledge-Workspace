@@ -4,7 +4,7 @@ import { getOrganizationContext } from "@/server/auth/organization";
 import { requireMembership } from "@/server/services/memberships";
 import { assertCan } from "@/server/auth/authorization";
 import { updateOrganizationPlan, PLANS, PlanType } from "@/server/services/plans";
-import { isAppError, toErrorResponse, ValidationError } from "@/server/lib/errors";
+import { isAppError, toErrorResponse } from "@/server/lib/errors";
 
 export async function POST(
   request: Request,
