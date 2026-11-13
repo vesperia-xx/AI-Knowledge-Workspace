@@ -18,6 +18,11 @@ const envSchema = z.object({
     (value) => (value === "" ? undefined : value),
     z.enum(["queue", "inline"]).optional(),
   ),
+  /** Optional override for the OpenRouter chat model slug. */
+  CHAT_MODEL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().optional(),
+  ),
 });
 
 export function parseEnv(source: NodeJS.ProcessEnv) {

@@ -99,6 +99,20 @@ export default function ChatPage({
           ),
         );
       }
+
+      if (!fullResponse.trim()) {
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? {
+                  ...msg,
+                  content:
+                    "The model returned an empty answer. Check the provider settings (OPENROUTER_API_KEY and CHAT_MODEL).",
+                }
+              : msg,
+          ),
+        );
+      }
     } catch (error) {
       console.error("Chat error:", error);
       setMessages((prev) => [

@@ -106,6 +106,12 @@ export async function POST(
     model: chatModel,
     system: systemPrompt,
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
+    onError: ({ error }) => {
+      logger.error("chat.stream.failed", {
+        organizationId: org.organization.id,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    },
     onFinish: async ({ text }) => {
       // Save assistant message to DB when complete
       if (activeConversationId) {

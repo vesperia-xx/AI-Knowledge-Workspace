@@ -16,6 +16,11 @@ export const openrouter = createOpenAI({
 export const embeddingModel = openrouter.embedding("openai/text-embedding-3-small");
 
 /**
- * Default chat model to use via OpenRouter (for future phases).
+ * Default chat model to use via OpenRouter.
+ *
+ * Configurable with CHAT_MODEL because model names are retired often; pinning
+ * a dead slug produces empty streams instead of a loud error.
  */
-export const chatModel = openrouter.chat("anthropic/claude-3.5-sonnet");
+export const chatModel = openrouter.chat(
+  process.env.CHAT_MODEL ?? "openai/gpt-4o-mini",
+);
