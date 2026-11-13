@@ -7,6 +7,8 @@ import {
   addMessage,
   createConversation,
 } from "@/server/services/chats";
+import { logger } from "@/server/lib/logger";
+import { searchSimilarChunks } from "@/server/services/rag";
 
 /** Streaming answers regularly outlive the default function budget. */
 export const maxDuration = 60;
@@ -52,9 +54,52 @@ export async function POST(
     content: latestMessage.content,
   });
 
-  // 2. Workspace tools stay disabled until the chat provider is confirmed to
-  // support tool calls end to end.
-  const systemPrompt = `You are Recall, a helpful AI knowledge workspace assistant. You have access to workspace tools to search internal documents, check workspace statistics, and list recent files. Use these tools when needed to give accurate, well-informed answers. Always cite your sources when using document chunks.`;
+  // 2. Retrieve the passages this question should be answered from. A failure
+  // here must not take the chat down: answering without context is worse, but
+  // an empty 500 is worse still.
+  let context = "";
+  let sources: Array<{
+    index: number;
+    documentName: string;
+    chunkIndex: number;
+    similarity: number;
+  }> = [];
+
+  try {
+    const matches = await searchSimilarChunks({
+      organizationId: org.organization.id,
+      query: latestMessage.content,
+      limit: 4,
+    });
+
+    context = matches
+      .map(
+        (match, index) =>
+          `[${index + 1}] ${match.documentName} (fragment ${match.chunkIndex + 1})\n${match.content}`,
+      )
+      .join("\n\n");
+
+    sources = matches.map((match, index) => ({
+      index: index + 1,
+      documentName: match.documentName,
+      chunkIndex: match.chunkIndex,
+      similarity: Number(match.similarity),
+    }));
+  } catch (error) {
+    logger.error("chat.retrieval.failed", {
+      organizationId: org.organization.id,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  const systemPrompt = [
+    "You are Recall, an assistant for a private knowledge workspace.",
+    "Answer in the language of the question, in a few short paragraphs.",
+    "Use only the context below. Cite every claim with the bracketed number of the passage it came from, for example [1].",
+    "If the context does not contain the answer, say that the uploaded documents do not cover it and suggest uploading a relevant file. Never invent sources.",
+    "",
+    context || "(No relevant passages were retrieved for this question.)",
+  ].join("\n");
 
   // 3. Stream response using AI SDK streamText without tools parameter to keep robust compatibility
   const result = await streamText({
@@ -73,5 +118,12 @@ export async function POST(
     },
   });
 
-  return result.toTextStreamResponse();
+  // Headers carry what the plain text stream cannot: the conversation id to
+  // keep the thread, and the sources the UI lists under the answer.
+  return result.toTextStreamResponse({
+    headers: {
+      "x-conversation-id": activeConversationId,
+      "x-sources": encodeURIComponent(JSON.stringify(sources)),
+    },
+  });
 }

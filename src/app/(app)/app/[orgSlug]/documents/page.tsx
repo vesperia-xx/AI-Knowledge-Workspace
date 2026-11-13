@@ -1,9 +1,11 @@
-import { FileTextIcon } from "lucide-react";
+import Link from "next/link";
+import { FileTextIcon, MessageSquareIcon } from "lucide-react";
 
 import { DocumentActions } from "@/components/documents/document-actions";
 import { DocumentStatusBadge } from "@/components/documents/document-status-badge";
 import { DocumentsAutoRefresh } from "@/components/documents/documents-auto-refresh";
 import { UploadDocumentForm } from "@/components/documents/upload-document-form";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -37,11 +39,22 @@ export default async function DocumentsPage({
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Everything here is private to {organization.name}. Uploads are parsed
-        and split into passages in the background.
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Documents</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Everything here is private to {organization.name}. Uploads are
+            parsed and split into passages in the background.
+          </p>
+        </div>
+        <Link
+          href={`/app/${organization.slug}/chat`}
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          <MessageSquareIcon />
+          Ask your documents
+        </Link>
+      </div>
 
       <Card className="mt-8">
         <CardHeader>

@@ -3,16 +3,18 @@
 import { use, useState } from "react";
 import { Send, Bot, User, Loader2, Sparkles } from "lucide-react";
 
+type Source = {
+  index: number;
+  documentName: string;
+  chunkIndex: number;
+  similarity: number;
+};
+
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  sources?: Array<{
-    documentName: string;
-    chunkIndex: number;
-    content: string;
-    similarity: number;
-  }>;
+  sources?: Source[];
 };
 
 export default function ChatPage({
@@ -57,6 +59,15 @@ export default function ChatPage({
         throw new Error("Failed to fetch chat response");
       }
 
+      // The stream is plain text; metadata travels in headers.
+      const returnedConversationId = response.headers.get("x-conversation-id");
+      if (returnedConversationId) setConversationId(returnedConversationId);
+
+      const sourcesHeader = response.headers.get("x-sources");
+      const sources: Source[] = sourcesHeader
+        ? JSON.parse(decodeURIComponent(sourcesHeader))
+        : [];
+
       const reader = response.body?.getReader();
       if (!reader) {
         throw new Error("No response body reader available");
@@ -67,6 +78,7 @@ export default function ChatPage({
         id: assistantMessageId,
         role: "assistant",
         content: "",
+        sources,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -87,24 +99,24 @@ export default function ChatPage({
           ),
         );
       }
-
-      setConversationId(conversationId); // TODO: Get from response
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.role === "assistant"
-            ? { ...msg, content: "Error: Failed to generate response." }
-            : msg,
-        ),
-      );
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(),
+          role: "assistant",
+          content:
+            "No pude generar la respuesta. Revisa la conexión e inténtalo de nuevo.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] max-w-5xl mx-auto p-4 md:p-6">
+    <div className="mx-auto flex h-[calc(100svh-11rem)] w-full max-w-5xl flex-col p-4 md:p-6">
       <div className="flex items-center justify-between pb-4 border-b mb-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -153,6 +165,20 @@ export default function ChatPage({
                   }`}
                 >
                   <div className="whitespace-pre-wrap">{m.content}</div>
+
+                  {m.role === "assistant" && m.sources?.length ? (
+                    <div className="mt-3 border-t border-border/40 pt-2 text-xs opacity-80">
+                      <p className="font-medium">Sources</p>
+                      <ol className="mt-1 space-y-0.5">
+                        {m.sources.map((source) => (
+                          <li key={`${source.documentName}-${source.chunkIndex}`}>
+                            [{source.index}] {source.documentName} · fragment{" "}
+                            {source.chunkIndex + 1}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             );

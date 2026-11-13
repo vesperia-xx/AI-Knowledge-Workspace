@@ -19,6 +19,11 @@ export function OrganizationNav({
   const items = [
     { href: base, label: "Overview", isActive: pathname === base },
     {
+      href: `${base}/chat`,
+      label: "Chat",
+      isActive: pathname.startsWith(`${base}/chat`),
+    },
+    {
       href: `${base}/documents`,
       label: "Documents",
       isActive: pathname.startsWith(`${base}/documents`),

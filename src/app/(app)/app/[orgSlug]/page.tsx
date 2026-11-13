@@ -93,8 +93,18 @@ export default async function OrganizationOverviewPage({
           <MessageSquareIcon className="size-4 text-muted-foreground" />
           <h2 className="mt-4 text-sm font-medium">Ask your documents</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Retrieval, citations and streaming answers arrive in Phase 4 and 5.
+            Answers are grounded in the passages retrieved from this workspace
+            and list the fragments they came from.
           </p>
+          <Link
+            href={`/app/${organization.slug}/chat`}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "mt-4",
+            )}
+          >
+            Open chat
+          </Link>
         </div>
         <div className="bg-background p-6">
           <UsersIcon className="size-4 text-muted-foreground" />
