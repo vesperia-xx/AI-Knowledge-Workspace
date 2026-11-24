@@ -30,6 +30,20 @@ export default async function LoginPage({
       <CardContent>
         <LoginForm callbackUrl={destination} />
 
+        <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
+          <p className="text-sm font-medium">Evaluating the project?</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Open a shared demo workspace with a sample handbook. No sign-up
+            needed.
+          </p>
+          <Link
+            href="/demo"
+            className="mt-3 inline-flex text-sm font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Explore the demo workspace &rarr;
+          </Link>
+        </div>
+
         <p className="mt-6 text-sm text-muted-foreground">
           No account yet?{" "}
           <Link
